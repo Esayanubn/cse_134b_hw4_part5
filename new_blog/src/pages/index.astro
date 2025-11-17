@@ -1,0 +1,246 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Card from '../components/Card.astro';
+import type { MusicData } from '../types';
+import musicDataJson from '../data/music-data.json';
+
+const musicData = musicDataJson as MusicData;
+
+// Get featured items
+const featuredAlbums = musicData.albums.slice(0, 6);
+const featuredArtists = musicData.artists.slice(0, 6);
+const featuredGenres = musicData.genres.slice(0, 3);
+const topTracks = musicData.tracks.slice(0, 10);
+---
+
+<BaseLayout title="Home">
+	<header class="hero">
+		<h1 class="hero-title">Welcome to My Music Blog</h1>
+		<p class="hero-description">
+			Discover my personal music collection featuring top albums, artists, genres, and tracks. 
+			Explore over 200 carefully curated songs that have shaped my musical journey.
+		</p>
+	</header>
+
+	<aside class="stats" aria-label="Collection Statistics">
+		<article class="stat-item">
+			<p class="stat-label">Total Tracks</p>
+			<p class="stat-value">{musicData.tracks.length}</p>
+		</article>
+		<article class="stat-item">
+			<p class="stat-label">Albums</p>
+			<p class="stat-value">{musicData.albums.length}</p>
+		</article>
+		<article class="stat-item">
+			<p class="stat-label">Artists</p>
+			<p class="stat-value">{musicData.artists.length}</p>
+		</article>
+		<article class="stat-item">
+			<p class="stat-label">Genres</p>
+			<p class="stat-value">{musicData.genres.length}</p>
+		</article>
+	</aside>
+
+	<section class="section">
+		<h2 class="section-title">Featured Albums</h2>
+		<div class="grid">
+			{featuredAlbums.map((album) => (
+				<Card
+					title={album.name}
+					subtitle={album.artist}
+					href={`/albums/${album.slug}`}
+					image={album.coverImage}
+					description={`${album.tracks.length} tracks${album.year ? ` • ${album.year}` : ''}`}
+				/>
+			))}
+		</div>
+		<footer class="section-footer">
+			<a href="/albums" class="view-all">View All Albums →</a>
+		</footer>
+	</section>
+
+	<section class="section">
+		<h2 class="section-title">Featured Artists</h2>
+		<div class="grid">
+			{featuredArtists.map((artist) => (
+				<Card
+					title={artist.name}
+					href={`/artists/${artist.slug}`}
+					image={artist.image}
+					description={`${artist.tracks.length} tracks`}
+				/>
+			))}
+		</div>
+		<footer class="section-footer">
+			<a href="/artists" class="view-all">View All Artists →</a>
+		</footer>
+	</section>
+
+	<section class="section">
+		<h2 class="section-title">Genres</h2>
+		<div class="grid">
+			{featuredGenres.map((genre) => (
+				<Card
+					title={genre.name}
+					href={`/genres/${genre.slug}`}
+					description={`${genre.tracks.length} tracks`}
+				/>
+			))}
+		</div>
+		<footer class="section-footer">
+			<a href="/genres" class="view-all">View All Genres →</a>
+		</footer>
+	</section>
+
+	<section class="section">
+		<h2 class="section-title">Top Tracks</h2>
+		<ol class="track-list">
+			{topTracks.map((track) => (
+				<li>
+					<a href={`/tracks/${track.slug}`} class="track-item">
+						<span class="track-rank" aria-label="Rank">#{topTracks.indexOf(track) + 1}</span>
+						<div class="track-details">
+							<h4 class="track-name">{track.name}</h4>
+							<p class="track-meta">{track.artist} • {track.album}</p>
+						</div>
+						<div class="track-stats">
+							<span class="play-count">{track.playCount} plays</span>
+							{track.loved && <span class="loved" aria-label="Loved">❤️</span>}
+						</div>
+					</a>
+				</li>
+			))}
+		</ol>
+		<footer class="section-footer">
+			<a href="/tracks" class="view-all">View All Tracks →</a>
+		</footer>
+	</section>
+</BaseLayout>
+
+<style>
+	.hero {
+		text-align: center;
+		padding: 3rem 0;
+		margin-bottom: 3rem;
+	}
+
+	.hero-title {
+		font-size: 3rem;
+		margin: 0 0 1rem 0;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	.hero-description {
+		font-size: 1.25rem;
+		color: #666;
+		max-width: 700px;
+		margin: 0 auto;
+		line-height: 1.6;
+	}
+
+	.section {
+		margin: 4rem 0;
+	}
+
+	.section-title {
+		font-size: 2rem;
+		margin: 0 0 1.5rem 0;
+		color: #333;
+	}
+
+	.section-footer {
+		text-align: center;
+		margin-top: 2rem;
+	}
+
+	.view-all {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #667eea;
+	}
+
+	.track-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.track-item {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+		background: white;
+		padding: 1.25rem;
+		border-radius: 8px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		text-decoration: none;
+		color: inherit;
+		transition: transform 0.2s, box-shadow 0.2s;
+	}
+
+	.track-item:hover {
+		transform: translateX(4px);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	}
+
+	.track-rank {
+		font-size: 1.5rem;
+		font-weight: bold;
+		color: #667eea;
+		min-width: 50px;
+		text-align: center;
+	}
+
+	.track-details {
+		flex: 1;
+	}
+
+	.track-item .track-name {
+		margin: 0 0 0.25rem 0;
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.track-item .track-meta {
+		margin: 0;
+		color: #666;
+		font-size: 0.9rem;
+	}
+
+	.track-stats {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.play-count {
+		color: #888;
+		font-size: 0.9rem;
+	}
+
+	.loved {
+		font-size: 1.25rem;
+	}
+
+	@media (max-width: 768px) {
+		.hero-title {
+			font-size: 2rem;
+		}
+
+		.hero-description {
+			font-size: 1rem;
+		}
+
+		.track-item {
+			flex-wrap: wrap;
+		}
+
+		.track-rank {
+			min-width: 40px;
+		}
+	}
+</style>

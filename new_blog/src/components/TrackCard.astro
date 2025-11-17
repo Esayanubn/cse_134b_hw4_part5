@@ -1,0 +1,86 @@
+---
+import type { Track } from '../types';
+
+interface Props {
+	track: Track;
+}
+
+const { track } = Astro.props;
+
+function formatDuration(ms: number): string {
+	const seconds = Math.floor(ms / 1000);
+	const minutes = Math.floor(seconds / 60);
+	const secs = seconds % 60;
+	return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+---
+
+<a href={`/tracks/${track.slug}`} class="track-card">
+	<div class="track-info">
+		<h4 class="track-name">{track.name}</h4>
+		<p class="track-artist">{track.artist}</p>
+		<div class="track-meta">
+			<span class="track-album">{track.album}</span>
+			<span class="track-duration">{formatDuration(track.duration)}</span>
+		</div>
+	</div>
+	{track.loved && <span class="loved-badge">❤️</span>}
+</a>
+
+<style>
+	.track-card {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		background: white;
+		padding: 1rem 1.5rem;
+		border-radius: 8px;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		text-decoration: none;
+		color: inherit;
+		transition: transform 0.2s, box-shadow 0.2s;
+	}
+
+	.track-card:hover {
+		transform: translateX(4px);
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+	}
+
+	.track-info {
+		flex: 1;
+	}
+
+	.track-name {
+		margin: 0 0 0.25rem 0;
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.track-artist {
+		margin: 0 0 0.5rem 0;
+		color: #666;
+		font-size: 0.9rem;
+	}
+
+	.track-meta {
+		display: flex;
+		gap: 1rem;
+		font-size: 0.85rem;
+		color: #888;
+	}
+
+	.track-album {
+		flex: 1;
+	}
+
+	.track-duration {
+		font-weight: 500;
+	}
+
+	.loved-badge {
+		font-size: 1.5rem;
+		margin-left: 1rem;
+	}
+</style>
+

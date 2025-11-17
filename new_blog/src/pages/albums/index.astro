@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Card from '../../components/Card.astro';
+import type { MusicData } from '../../types';
+import musicDataJson from '../../data/music-data.json';
+
+const musicData = musicDataJson as MusicData;
+---
+
+<BaseLayout title="Albums" description="Browse all albums in my music collection">
+	<header class="page-header">
+		<h1 class="page-title">All Albums</h1>
+		<p class="page-description">
+			Explore {musicData.albums.length} albums from my music collection, each containing carefully selected tracks.
+		</p>
+	</header>
+
+	<main class="grid">
+		{musicData.albums.map((album) => (
+			<Card
+				title={album.name}
+				subtitle={album.artist}
+				href={`/albums/${album.slug}`}
+				image={album.coverImage}
+				description={`${album.tracks.length} tracks${album.year ? ` • Released ${album.year}` : ''}`}
+			/>
+		))}
+	</main>
+</BaseLayout>
+

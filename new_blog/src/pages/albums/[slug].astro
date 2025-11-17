@@ -1,0 +1,224 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TrackCard from '../../components/TrackCard.astro';
+import type { MusicData } from '../../types';
+import musicDataJson from '../../data/music-data.json';
+import { findArtistSlug } from '../../utils/slug';
+
+export async function getStaticPaths() {
+	const musicData = musicDataJson as MusicData;
+	return musicData.albums.map((album) => ({
+		params: { slug: album.slug },
+		props: { album },
+	}));
+}
+
+interface Props {
+	album: {
+		name: string;
+		slug: string;
+		artist: string;
+		year: number | null;
+		tracks: any[];
+		coverImage?: string;
+	};
+}
+
+const { album } = Astro.props;
+
+function formatDuration(ms: number): string {
+	const seconds = Math.floor(ms / 1000);
+	const minutes = Math.floor(seconds / 60);
+	const secs = seconds % 60;
+	return `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+const totalDuration = album.tracks.reduce((sum, track) => sum + track.duration, 0);
+const totalPlays = album.tracks.reduce((sum, track) => sum + track.playCount, 0);
+---
+
+<BaseLayout title={album.name} description={`Album by ${album.artist} featuring ${album.tracks.length} tracks`}>
+	<header class="album-header">
+		<figure class="album-cover">
+			{album.coverImage ? (
+				<img src={album.coverImage} alt={`${album.name} cover`} class="cover-image" />
+			) : (
+				<div class="cover-placeholder" role="img" aria-label="Album cover">🎵</div>
+			)}
+		</figure>
+		<div class="album-info">
+			<h1 class="album-title">{album.name}</h1>
+			<p class="album-artist">
+				<a href={`/artists/${findArtistSlug(album.artist)}`}>{album.artist}</a>
+			</p>
+			<dl class="album-meta">
+				{album.year && (
+					<>
+						<dt>Released</dt>
+						<dd>{album.year}</dd>
+					</>
+				)}
+				<dt>Tracks</dt>
+				<dd>{album.tracks.length}</dd>
+				<dt>Duration</dt>
+				<dd>{formatDuration(totalDuration)}</dd>
+				<dt>Total Plays</dt>
+				<dd>{totalPlays}</dd>
+			</dl>
+		</div>
+	</header>
+
+	<article class="album-description">
+		<h2>About This Album</h2>
+		<p>
+			{album.name} by {album.artist} is a remarkable collection featuring {album.tracks.length} carefully selected tracks. 
+			This album showcases the artist's unique style and musical vision, with tracks that have resonated deeply with listeners.
+			{album.year && ` Released in ${album.year}, `} The album has accumulated {totalPlays} total plays, 
+			demonstrating its lasting appeal and impact.
+		</p>
+	</article>
+
+	<section class="tracks-section">
+		<h2>Tracks</h2>
+		<ol class="track-list">
+			{album.tracks.map((track) => (
+				<li>
+					<TrackCard track={track} />
+				</li>
+			))}
+		</ol>
+	</section>
+</BaseLayout>
+
+<style>
+	.album-header {
+		display: flex;
+		gap: 2rem;
+		margin-bottom: 3rem;
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.album-cover {
+		flex-shrink: 0;
+	}
+
+	.cover-image {
+		width: 200px;
+		height: 200px;
+		object-fit: cover;
+		border-radius: 12px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	.cover-placeholder {
+		width: 200px;
+		height: 200px;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 4rem;
+	}
+
+	.album-info {
+		flex: 1;
+	}
+
+	.album-title {
+		font-size: 2.5rem;
+		margin: 0 0 0.5rem 0;
+		color: #333;
+	}
+
+	.album-artist {
+		font-size: 1.5rem;
+		margin: 0 0 1rem 0;
+		color: #666;
+	}
+
+	.album-artist a {
+		color: #667eea;
+		text-decoration: none;
+	}
+
+	.album-artist a:hover {
+		text-decoration: underline;
+	}
+
+	.album-meta {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.5rem 1.5rem;
+		color: #888;
+		font-size: 0.9rem;
+	}
+
+	.album-meta dt {
+		font-weight: 600;
+	}
+
+	.album-meta dd {
+		margin: 0;
+	}
+
+	.album-description {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		margin-bottom: 2rem;
+	}
+
+	.album-description h2 {
+		margin: 0 0 1rem 0;
+		color: #333;
+	}
+
+	.album-description p {
+		margin: 0;
+		line-height: 1.8;
+		color: #666;
+	}
+
+	.tracks-section {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.tracks-section h2 {
+		margin: 0 0 1.5rem 0;
+		color: #333;
+	}
+
+	.track-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	@media (max-width: 768px) {
+		.album-header {
+			flex-direction: column;
+		}
+
+		.cover-placeholder {
+			width: 100%;
+			max-width: 300px;
+			margin: 0 auto;
+		}
+
+		.album-title {
+			font-size: 2rem;
+		}
+	}
+</style>
+

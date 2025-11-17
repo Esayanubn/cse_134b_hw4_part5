@@ -1,0 +1,266 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TrackCard from '../../components/TrackCard.astro';
+import type { MusicData } from '../../types';
+import musicDataJson from '../../data/music-data.json';
+import { findGenreSlug } from '../../utils/slug';
+
+export async function getStaticPaths() {
+	const musicData = musicDataJson as MusicData;
+	return musicData.artists.map((artist) => ({
+		params: { slug: artist.slug },
+		props: { artist },
+	}));
+}
+
+interface Props {
+	artist: {
+		name: string;
+		slug: string;
+		tracks: any[];
+		image?: string;
+	};
+}
+
+const { artist } = Astro.props;
+
+const totalPlays = artist.tracks.reduce((sum, track) => sum + track.playCount, 0);
+const albums = [...new Set(artist.tracks.map(track => track.album))];
+const genres = [...new Set(artist.tracks.map(track => track.genre))];
+---
+
+<BaseLayout title={artist.name} description={`Artist page featuring ${artist.tracks.length} tracks`}>
+	<header class="artist-header">
+		<figure class="artist-avatar">
+			{artist.image ? (
+				<img src={artist.image} alt={`${artist.name} photo`} class="avatar-image" />
+			) : (
+				<div class="avatar-placeholder" role="img" aria-label={`${artist.name} avatar`}>{artist.name.charAt(0).toUpperCase()}</div>
+			)}
+		</figure>
+		<div class="artist-info">
+			<h1 class="artist-name">{artist.name}</h1>
+			<aside class="artist-stats" aria-label="Artist Statistics">
+				<article class="stat">
+					<span class="stat-value">{artist.tracks.length}</span>
+					<span class="stat-label">Tracks</span>
+				</article>
+				<article class="stat">
+					<span class="stat-value">{albums.length}</span>
+					<span class="stat-label">Albums</span>
+				</article>
+				<article class="stat">
+					<span class="stat-value">{totalPlays}</span>
+					<span class="stat-label">Total Plays</span>
+				</article>
+			</aside>
+		</div>
+	</header>
+
+	<article class="artist-description">
+		<h2>About {artist.name}</h2>
+		<p>
+			{artist.name} is a talented artist whose music has made a significant impact on my listening experience. 
+			With {artist.tracks.length} tracks in my collection across {albums.length} different albums, 
+			{artist.name} has consistently delivered memorable and engaging music. The artist's work spans multiple genres 
+			including {genres.slice(0, 3).join(', ')}{genres.length > 3 ? ', and more' : ''}, showcasing versatility and 
+			artistic range. With a total of {totalPlays} plays, these tracks have become an integral part of my music library.
+		</p>
+	</article>
+
+	<aside class="genres-section">
+		<h3>Genres</h3>
+		<nav class="genre-tags" aria-label="Genre navigation">
+			{genres.map((genre) => (
+				<a href={`/genres/${findGenreSlug(genre)}`} class="genre-tag">
+					{genre}
+				</a>
+			))}
+		</nav>
+	</aside>
+
+	<section class="tracks-section">
+		<h2>All Tracks</h2>
+		<ol class="track-list">
+			{artist.tracks.map((track) => (
+				<li>
+					<TrackCard track={track} />
+				</li>
+			))}
+		</ol>
+	</section>
+</BaseLayout>
+
+<style>
+	.artist-header {
+		display: flex;
+		gap: 2rem;
+		margin-bottom: 3rem;
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		align-items: center;
+	}
+
+	.artist-avatar {
+		flex-shrink: 0;
+	}
+
+	.avatar-image {
+		width: 150px;
+		height: 150px;
+		object-fit: cover;
+		border-radius: 50%;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	.avatar-placeholder {
+		width: 150px;
+		height: 150px;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 4rem;
+		color: white;
+		font-weight: bold;
+	}
+
+	.artist-info {
+		flex: 1;
+	}
+
+	.artist-name {
+		font-size: 2.5rem;
+		margin: 0 0 1.5rem 0;
+		color: #333;
+	}
+
+	.artist-stats {
+		display: flex;
+		gap: 3rem;
+	}
+
+	.artist-stats .stat {
+		display: flex;
+		flex-direction: column;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		padding: 1.5rem;
+		border-radius: 12px;
+		box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+		transition: transform 0.2s, box-shadow 0.2s;
+		min-width: 120px;
+		text-align: center;
+	}
+
+	.artist-stats .stat:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+	}
+
+	.artist-stats .stat-value {
+		font-size: 2rem;
+		font-weight: bold;
+		color: white;
+	}
+
+	.artist-stats .stat-label {
+		font-size: 0.9rem;
+		color: rgba(255, 255, 255, 0.9);
+		margin-top: 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.artist-description {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		margin-bottom: 2rem;
+	}
+
+	.artist-description h2 {
+		margin: 0 0 1rem 0;
+		color: #333;
+	}
+
+	.artist-description p {
+		margin: 0;
+		line-height: 1.8;
+		color: #666;
+	}
+
+	.genres-section {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		margin-bottom: 2rem;
+	}
+
+	.genres-section h3 {
+		margin: 0 0 1rem 0;
+		color: #333;
+	}
+
+	.genre-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
+	.genre-tag {
+		background: #f0f0f0;
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		text-decoration: none;
+		color: #333;
+		font-size: 0.9rem;
+		transition: background 0.2s;
+	}
+
+	.genre-tag:hover {
+		background: #667eea;
+		color: white;
+	}
+
+	.tracks-section {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.tracks-section h2 {
+		margin: 0 0 1.5rem 0;
+		color: #333;
+	}
+
+	.track-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	@media (max-width: 768px) {
+		.artist-header {
+			flex-direction: column;
+			text-align: center;
+		}
+
+		.artist-stats {
+			justify-content: center;
+		}
+
+		.artist-name {
+			font-size: 2rem;
+		}
+	}
+</style>
+

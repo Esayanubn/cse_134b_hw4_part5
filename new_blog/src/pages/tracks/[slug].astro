@@ -1,0 +1,364 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import type { MusicData } from '../../types';
+import musicDataJson from '../../data/music-data.json';
+import { findArtistSlug, findAlbumSlug, findGenreSlug } from '../../utils/slug';
+
+export async function getStaticPaths() {
+	const musicData = musicDataJson as MusicData;
+	return musicData.tracks.map((track) => ({
+		params: { slug: track.slug },
+		props: { track },
+	}));
+}
+
+interface Props {
+	track: {
+		id: string;
+		name: string;
+		artist: string;
+		albumArtist: string;
+		album: string;
+		genre: string;
+		year: number | null;
+		duration: number;
+		releaseDate: string;
+		composer: string;
+		playCount: number;
+		loved: boolean;
+		trackNumber: number | null;
+		discNumber: number;
+		slug: string;
+		albumCover?: string;
+	};
+}
+
+const { track } = Astro.props;
+
+function formatDuration(ms: number): string {
+	const totalSeconds = Math.floor(ms / 1000);
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
+	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function formatDate(dateString: string): string {
+	if (!dateString) return 'Unknown';
+	try {
+		const date = new Date(dateString);
+		return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+	} catch {
+		return dateString;
+	}
+}
+
+// Generate artist and album slugs for links
+const artistSlug = findArtistSlug(track.artist);
+const albumSlug = findAlbumSlug(track.album);
+const genreSlug = findGenreSlug(track.genre);
+---
+
+<BaseLayout title={track.name} description={`${track.name} by ${track.artist} from ${track.album}`}>
+	<header class="track-header">
+		<figure class="track-cover">
+			{track.albumCover ? (
+				<img src={track.albumCover} alt={`${track.album} cover`} class="cover-image" />
+			) : (
+				<div class="cover-placeholder" role="img" aria-label="Track cover">🎵</div>
+			)}
+		</figure>
+		<div class="track-info">
+			<h1 class="track-title">{track.name}</h1>
+			<p class="track-artist">
+				<a href={`/artists/${artistSlug}`}>{track.artist}</a>
+			</p>
+			<dl class="track-meta">
+				<dt>Album</dt>
+				<dd><a href={`/albums/${albumSlug}`}>{track.album}</a></dd>
+				<dt>Genre</dt>
+				<dd><a href={`/genres/${genreSlug}`}>{track.genre}</a></dd>
+				{track.year && (
+					<>
+						<dt>Year</dt>
+						<dd>{track.year}</dd>
+					</>
+				)}
+				{track.composer && (
+					<>
+						<dt>Composer</dt>
+						<dd>{track.composer}</dd>
+					</>
+				)}
+			</dl>
+			<div class="track-stats">
+				<span class="play-count">{track.playCount} plays</span>
+				{track.loved && <span class="loved-badge" aria-label="Loved">❤️ Loved</span>}
+			</div>
+		</div>
+	</header>
+
+	<main class="track-details">
+		<section class="detail-section">
+			<h2>Track Information</h2>
+			<dl class="info-list">
+				<dt>Duration</dt>
+				<dd>{formatDuration(track.duration)}</dd>
+				
+				{track.releaseDate && (
+					<>
+						<dt>Release Date</dt>
+						<dd>{formatDate(track.releaseDate)}</dd>
+					</>
+				)}
+				
+				{track.trackNumber && (
+					<>
+						<dt>Track Number</dt>
+						<dd>{track.trackNumber}</dd>
+					</>
+				)}
+				
+				<dt>Total Plays</dt>
+				<dd>{track.playCount}</dd>
+			</dl>
+		</section>
+
+		<section class="detail-section">
+			<h2>Lyrics</h2>
+			<div class="lyrics-container">
+				<p class="lyrics-placeholder">
+					<!-- Lyrics will be added here -->
+					Lyrics for "{track.name}" by {track.artist} will be displayed here.
+					<br />
+					<br />
+					[You can add the actual lyrics content here]
+				</p>
+			</div>
+		</section>
+
+		<article class="detail-section">
+			<h2>About This Track</h2>
+			<p>
+				"{track.name}" by {track.artist} is a captivating piece from the album {track.album}. 
+				This {track.genre} track has been played {track.playCount} times, demonstrating its lasting appeal. 
+				{track.composer && `Composed by ${track.composer}, `}
+				{track.year && `released in ${track.year}, `}
+				this song showcases the artist's unique style and musical vision. 
+				{track.loved && 'This track holds a special place in my collection as one of my favorite songs.'}
+			</p>
+		</article>
+	</main>
+
+	<nav class="navigation" aria-label="Track navigation">
+		<a href="/tracks" class="nav-link">← Back to All Tracks</a>
+		<a href={`/artists/${artistSlug}`} class="nav-link">View Artist →</a>
+	</nav>
+</BaseLayout>
+
+<style>
+	.track-header {
+		display: flex;
+		gap: 2rem;
+		margin-bottom: 3rem;
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.track-cover {
+		flex-shrink: 0;
+	}
+
+	.cover-image {
+		width: 200px;
+		height: 200px;
+		object-fit: cover;
+		border-radius: 12px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	.cover-placeholder {
+		width: 200px;
+		height: 200px;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		border-radius: 12px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 4rem;
+	}
+
+	.track-info {
+		flex: 1;
+	}
+
+	.track-title {
+		font-size: 2.5rem;
+		margin: 0 0 0.5rem 0;
+		color: #333;
+	}
+
+	.track-artist {
+		font-size: 1.5rem;
+		margin: 0 0 1rem 0;
+		color: #666;
+	}
+
+	.track-artist a {
+		color: #667eea;
+		text-decoration: none;
+	}
+
+	.track-artist a:hover {
+		text-decoration: underline;
+	}
+
+	.track-meta {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 0.5rem 1rem;
+		margin-bottom: 1rem;
+		color: #888;
+		font-size: 0.9rem;
+	}
+
+	.track-meta dt {
+		font-weight: 600;
+	}
+
+	.track-meta dd {
+		margin: 0;
+	}
+
+	.track-meta a {
+		color: #667eea;
+		text-decoration: none;
+	}
+
+	.track-meta a:hover {
+		text-decoration: underline;
+	}
+
+	.track-stats {
+		display: flex;
+		gap: 1.5rem;
+		align-items: center;
+	}
+
+	.play-count {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #333;
+	}
+
+	.loved-badge {
+		font-size: 1.1rem;
+		color: #e74c3c;
+	}
+
+	.track-details {
+		display: flex;
+		flex-direction: column;
+		gap: 2rem;
+	}
+
+	.detail-section {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.detail-section h2 {
+		margin: 0 0 1.5rem 0;
+		color: #333;
+		font-size: 1.5rem;
+	}
+
+	.info-list {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 1rem;
+		margin: 0;
+	}
+
+	.info-list dt {
+		font-weight: 600;
+		color: #666;
+	}
+
+	.info-list dd {
+		margin: 0;
+		color: #333;
+	}
+
+	.lyrics-container {
+		background: #f9f9f9;
+		padding: 2rem;
+		border-radius: 8px;
+		min-height: 200px;
+	}
+
+	.lyrics-placeholder {
+		margin: 0;
+		line-height: 1.8;
+		color: #666;
+		white-space: pre-line;
+	}
+
+	.detail-section p {
+		margin: 0;
+		line-height: 1.8;
+		color: #666;
+	}
+
+	.navigation {
+		display: flex;
+		justify-content: space-between;
+		margin-top: 2rem;
+		padding: 2rem;
+		background: white;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.nav-link {
+		font-size: 1.1rem;
+		font-weight: 600;
+		color: #667eea;
+		text-decoration: none;
+		transition: opacity 0.2s;
+	}
+
+	.nav-link:hover {
+		opacity: 0.8;
+		text-decoration: underline;
+	}
+
+	@media (max-width: 768px) {
+		.track-header {
+			flex-direction: column;
+		}
+
+		.cover-placeholder {
+			width: 100%;
+			max-width: 300px;
+			margin: 0 auto;
+		}
+
+		.track-title {
+			font-size: 2rem;
+		}
+
+		.info-list {
+			grid-template-columns: 1fr;
+		}
+
+		.navigation {
+			flex-direction: column;
+			gap: 1rem;
+		}
+	}
+</style>
+

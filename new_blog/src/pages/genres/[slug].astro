@@ -1,0 +1,225 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TrackCard from '../../components/TrackCard.astro';
+import type { MusicData } from '../../types';
+import musicDataJson from '../../data/music-data.json';
+import { findArtistSlug } from '../../utils/slug';
+
+export async function getStaticPaths() {
+	const musicData = musicDataJson as MusicData;
+	return musicData.genres.map((genre) => ({
+		params: { slug: genre.slug },
+		props: { genre },
+	}));
+}
+
+interface Props {
+	genre: {
+		name: string;
+		slug: string;
+		tracks: any[];
+	};
+}
+
+const { genre } = Astro.props;
+
+const totalPlays = genre.tracks.reduce((sum, track) => sum + track.playCount, 0);
+const artists = [...new Set(genre.tracks.map(track => track.artist))];
+const albums = [...new Set(genre.tracks.map(track => track.album))];
+---
+
+<BaseLayout title={genre.name} description={`${genre.name} genre featuring ${genre.tracks.length} tracks`}>
+	<header class="genre-header">
+		<h1 class="genre-title">{genre.name}</h1>
+		<aside class="genre-stats" aria-label="Genre Statistics">
+			<article class="stat">
+				<span class="stat-value">{genre.tracks.length}</span>
+				<span class="stat-label">Tracks</span>
+			</article>
+			<article class="stat">
+				<span class="stat-value">{artists.length}</span>
+				<span class="stat-label">Artists</span>
+			</article>
+			<article class="stat">
+				<span class="stat-value">{albums.length}</span>
+				<span class="stat-label">Albums</span>
+			</article>
+			<article class="stat">
+				<span class="stat-value">{totalPlays}</span>
+				<span class="stat-label">Total Plays</span>
+			</article>
+		</aside>
+	</header>
+
+	<article class="genre-description">
+		<h2>About {genre.name}</h2>
+		<p>
+			{genre.name} is a genre that has captured my musical interest with its distinctive characteristics and 
+			artistic expression. This collection features {genre.tracks.length} tracks from {artists.length} different artists, 
+			spanning across {albums.length} albums. The genre showcases a diverse range of styles and interpretations, 
+			each track contributing to the rich tapestry of {genre.name} music. With a total of {totalPlays} plays, 
+			these tracks represent some of the most engaging and memorable music in this genre from my collection.
+		</p>
+	</article>
+
+	<aside class="artists-section">
+		<h3>Featured Artists</h3>
+		<nav class="artist-list" aria-label="Artist navigation">
+			{artists.slice(0, 10).map((artist) => (
+				<a href={`/artists/${findArtistSlug(artist)}`} class="artist-link">
+					{artist}
+				</a>
+			))}
+		</nav>
+	</aside>
+
+	<section class="tracks-section">
+		<h2>All Tracks</h2>
+		<ol class="track-list">
+			{genre.tracks.map((track) => (
+				<li>
+					<TrackCard track={track} />
+				</li>
+			))}
+		</ol>
+	</section>
+</BaseLayout>
+
+<style>
+	.genre-header {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		margin-bottom: 2rem;
+		text-align: center;
+	}
+
+	.genre-title {
+		font-size: 3rem;
+		margin: 0 0 2rem 0;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	.genre-stats {
+		display: flex;
+		justify-content: center;
+		gap: 1.5rem;
+		flex-wrap: wrap;
+	}
+
+	.genre-stats .stat {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+		padding: 1.5rem 2rem;
+		border-radius: 12px;
+		box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+		transition: transform 0.2s, box-shadow 0.2s;
+		min-width: 120px;
+	}
+
+	.genre-stats .stat:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+	}
+
+	.genre-stats .stat-value {
+		font-size: 2rem;
+		font-weight: bold;
+		color: white;
+	}
+
+	.genre-stats .stat-label {
+		font-size: 0.9rem;
+		color: rgba(255, 255, 255, 0.9);
+		margin-top: 0.5rem;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+
+	.genre-description {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		margin-bottom: 2rem;
+	}
+
+	.genre-description h2 {
+		margin: 0 0 1rem 0;
+		color: #333;
+	}
+
+	.genre-description p {
+		margin: 0;
+		line-height: 1.8;
+		color: #666;
+	}
+
+	.artists-section {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		margin-bottom: 2rem;
+	}
+
+	.artists-section h3 {
+		margin: 0 0 1rem 0;
+		color: #333;
+	}
+
+	.artist-list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+	}
+
+	.artist-link {
+		background: #f0f0f0;
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		text-decoration: none;
+		color: #333;
+		font-size: 0.9rem;
+		transition: background 0.2s;
+	}
+
+	.artist-link:hover {
+		background: #667eea;
+		color: white;
+	}
+
+	.tracks-section {
+		background: white;
+		padding: 2rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+	}
+
+	.tracks-section h2 {
+		margin: 0 0 1.5rem 0;
+		color: #333;
+	}
+
+	.track-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	@media (max-width: 768px) {
+		.genre-title {
+			font-size: 2rem;
+		}
+	}
+</style>
+

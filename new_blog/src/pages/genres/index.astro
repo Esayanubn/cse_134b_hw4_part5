@@ -1,0 +1,28 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Card from '../../components/Card.astro';
+import type { MusicData } from '../../types';
+import musicDataJson from '../../data/music-data.json';
+
+const musicData = musicDataJson as MusicData;
+---
+
+<BaseLayout title="Genres" description="Explore music by genre">
+	<header class="page-header">
+		<h1 class="page-title">All Genres</h1>
+		<p class="page-description">
+			Browse music across {musicData.genres.length} different genres, each with its unique sound and character.
+		</p>
+	</header>
+
+	<main class="grid">
+		{musicData.genres.map((genre) => (
+			<Card
+				title={genre.name}
+				href={`/genres/${genre.slug}`}
+				description={`${genre.tracks.length} tracks`}
+			/>
+		))}
+	</main>
+</BaseLayout>
+

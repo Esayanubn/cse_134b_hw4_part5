@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TrackCard from '../../components/TrackCard.astro';
+import type { MusicData } from '../../types';
+import musicDataJson from '../../data/music-data.json';
+
+const musicData = musicDataJson as MusicData;
+---
+
+<BaseLayout title="All Tracks" description="Browse all tracks in my music collection">
+	<header class="page-header">
+		<h1 class="page-title">All Tracks</h1>
+		<p class="page-description">
+			Explore all {musicData.tracks.length} tracks, sorted by play count.
+		</p>
+	</header>
+
+	<main class="track-list">
+		{musicData.tracks.map((track) => (
+			<TrackCard track={track} />
+		))}
+	</main>
+</BaseLayout>
+
